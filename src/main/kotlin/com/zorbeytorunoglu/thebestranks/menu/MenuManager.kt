@@ -192,47 +192,48 @@ class MenuManager(private val plugin: TBR) {
     }
 
     private fun getItemStackWPlaceholders(player: Player, itemStack: ItemStack, rank: Rank, isInProgressItem: Boolean): ItemStack {
+		val item = itemStack.clone()
+		val meta = item.itemMeta
 
-        val item = itemStack.clone()
-        val meta = item.itemMeta
+		meta.displayName = PlaceholderAPI.setPlaceholders(player,
+			meta.displayName.replace("%rank%", "§f" + rank.displayName).colorHex
+		)
 
-        meta.displayName = meta.displayName.replace("%rank%", rank.displayName).colorHex
+		if (isInProgressItem) {
 
-        if (isInProgressItem) {
+			val lore: List<String>
 
-            val lore: List<String>
+			if (rank.requirements.isEmpty()) {
+				lore = plugin.messages.noRequirementsLore
+			} else {
+				lore = rank.lore.map {
 
-            if (rank.requirements.isEmpty()) {
-                lore = plugin.messages.noRequirementsLore
-            } else {
-                lore = rank.lore.map {
+					if (it.contains("%requirement_")) {
+						val no = StringUtils.substringBetween(it, "%", "%").numbers
+						val req = rank.requirements[no]
 
-                    if (it.contains("%requirement_")) {
-                        val no = StringUtils.substringBetween(it, "%", "%").numbers
-                        val req = rank.requirements[no]
+						it.replace("%requirement_$no%",
+							req.guiMessage.replace("%your%",
+								PlaceholderAPI.setPlaceholders(player, req.placeholder)))
+							.replace("%status%", if (plugin.rankManager.requirementMet(player, req))
+								config.statusDone else config.statusNotDone).colorHex
+					} else {
+						it.replace("%rank%", rank.displayName).colorHex
+					}
 
-                        it.replace("%requirement_$no%",
-                            req.guiMessage.replace("%your%",
-                                PlaceholderAPI.setPlaceholders(player, req.placeholder)))
-                            .replace("%status%", if (plugin.rankManager.requirementMet(player, req))
-                                config.statusDone else config.statusNotDone).colorHex
-                    } else {
-                        it.replace("%rank%", rank.displayName).colorHex
-                    }
+				}
+			}
 
-                }
-            }
+			meta.lore = lore
 
-            meta.lore = lore
+		} else {
+			if (meta.lore != null)
+				meta.lore = meta.lore.map { it.replace("%rank%", rank.displayName).colorHex }
+		}
 
-        } else {
-            if (meta.lore != null)
-                meta.lore = meta.lore.map { it.replace("%rank%", rank.displayName).colorHex }
-        }
+		item.itemMeta = meta
 
-        item.itemMeta = meta
-
-        return item
+		return item
 
     }
 
