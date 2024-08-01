@@ -196,7 +196,7 @@ class MenuManager(private val plugin: TBR) {
 		val meta = item.itemMeta
 
 		meta.displayName = PlaceholderAPI.setPlaceholders(player,
-			meta.displayName.replace("%rank%", "§f" + rank.displayName).colorHex
+			meta.displayName.replace("%rank%", rank.displayName).colorHex
 		)
 
 		if (isInProgressItem) {
@@ -224,11 +224,11 @@ class MenuManager(private val plugin: TBR) {
 				}
 			}
 
-			meta.lore = lore
+			meta.lore = PlaceholderAPI.setPlaceholders(player, lore)
 
 		} else {
 			if (meta.lore != null)
-				meta.lore = meta.lore.map { it.replace("%rank%", rank.displayName).colorHex }
+				meta.lore = PlaceholderAPI.setPlaceholders(player, meta.lore.map { it.replace("%rank%", rank.displayName).colorHex })
 		}
 
 		item.itemMeta = meta
